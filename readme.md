@@ -17,9 +17,10 @@ Schrijf voor deze opdracht een programma in de programmeertaal van je keuze en g
 
 ## Covered topics
 
-* Using of a simple POCO class (Makelaar)
-* Enumeration for limited options (object type)
+* Using of a simple POCO (Makelaar)
+* Enum for predefined options (object type)
 * Async await for web requests
-* Parsing Json 
+* Parsing Json to objects
 * Recursive method call (next page)
 * Overwrite and overload methods and operators (==)
+* String array for search 

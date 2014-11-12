@@ -3,7 +3,7 @@
 namespace WebServiceCrawl
 {
     /// <summary>
-    /// A Makelaar offers objects (houses or apartements). 
+    /// A simple Makelaar object to hold his values 
     /// </summary>
     public class Makelaar
     {

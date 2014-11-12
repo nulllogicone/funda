@@ -7,7 +7,7 @@ using System.Threading;
 namespace WebServiceCrawl
 {
     /// <summary>
-    /// A type safe parameter for the different object type options
+    /// A type safe parameter for possible object type options
     /// </summary>
     public enum ObjectType
     {
@@ -20,7 +20,7 @@ namespace WebServiceCrawl
 
     /// <summary>
     /// This class encapsulates the communication with the funda web service
-    /// and offers simple functions to be consumed by clients
+    /// and offers a simple functions to be consumed by clients
     /// </summary>
     public class FundaCrawler
     {
@@ -66,7 +66,7 @@ namespace WebServiceCrawl
                 var result = await content.ReadAsStringAsync();
                 dynamic resultPage = JsonConvert.DeserializeObject(result);
 
-                // for every obect add the makelaar or increment his amount of objects
+                // add the makelaar or increment his amount for all objects
                 foreach (var o in resultPage.Objects)
                 {
                     var m = JsonConvert.DeserializeObject<Makelaar>(o.ToString());
@@ -80,7 +80,7 @@ namespace WebServiceCrawl
                     }
                 }
 
-                // if there are more result pages, make a recursive call for next page
+                // if there are more result pages, make a recursive call to the next page
                 int totalPages = resultPage.Paging.AantalPaginas;
                 if (totalPages > page)
                 {
