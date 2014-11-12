@@ -25,6 +25,11 @@ Schrijf voor deze opdracht een programma in de programmeertaal van je keuze en g
 * Overwrite and overload methods and operators (==)
 * String array for search criteria
 
+## Howto run
+
+* clone repository, hit F5
+* change configuration parametrs in Program.cs file
+
 ## Comments
 
 * The API key is hardcoded because it is publicly available anyway
