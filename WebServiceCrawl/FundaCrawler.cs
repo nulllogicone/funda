@@ -6,11 +6,27 @@ using System.Threading;
 
 namespace WebServiceCrawl
 {
+    /// <summary>
+    /// A type safe parameter for the different object type options
+    /// </summary>
+    public enum ObjectType
+    {
+        koop,
+        huur,
+        recreatie,
+        project,
+        bog
+    }
 
+    /// <summary>
+    /// This class encapsulates the communication with the funda web service
+    /// and offers simple functions to be consumed by clients
+    /// </summary>
     public class FundaCrawler
     {
-        // webservice url pattern. The searchstring and page number must be replaced
-        private const string UrlPattern = "http://partnerapi.funda.nl/feeds/Aanbod.svc/json/005e7c1d6f6c4f9bacac16760286e3cd/?type=koop&zo={0}&pagesize=25&page={1}";
+        
+        // webservice url pattern. The object-type, searchstring and page number must be replaced
+        private const string UrlPattern = "http://partnerapi.funda.nl/feeds/Aanbod.svc/json/005e7c1d6f6c4f9bacac16760286e3cd/?type={0}&zo={1}&pagesize=25&page={2}";
 
         // internal object that holds the makelaars with the total amount of objects
         Dictionary<Makelaar, int> makelaarDictionary;
@@ -20,11 +36,11 @@ namespace WebServiceCrawl
         /// </summary>
         /// <param name="searchpattern">A dash-delimited string</param>
         /// <returns></returns>
-        public async Task<Dictionary<Makelaar, int>> RetrieveMakelaarsAsync(string[] searcharray)
+        public async Task<Dictionary<Makelaar, int>> RetrieveMakelaarsAsync(ObjectType objectType, string[] searcharray)
         {
             var page = 1;
             makelaarDictionary = new Dictionary<Makelaar, int>();
-            await FillPageResultInDictionary(searcharray, page);
+            await FillPageResultInDictionary(objectType, searcharray, page);
             return makelaarDictionary;
         }
 
@@ -36,10 +52,13 @@ namespace WebServiceCrawl
         /// <param name="page">The current page to retrieve.</param>
         /// <returns>Awaitable Task (void)</returns>
         /// <remarks>The request rate is throttled down to less than 100 / min to </remarks>
-        private async Task FillPageResultInDictionary(string[] searchWords, int page)
+        private async Task FillPageResultInDictionary(ObjectType objectType, string[] searchWords, int page)
         {
+            // prepare the url
             var searchString = string.Format("/{0}/", string.Join("/", searchWords));
-            var url = string.Format(UrlPattern, searchString, page);
+            var url = string.Format(UrlPattern, objectType.ToString(), searchString, page);
+
+            // execute the http request
             using (var client = new HttpClient())
             using (var response = await client.GetAsync(url))
             using (var content = response.Content)
@@ -47,6 +66,7 @@ namespace WebServiceCrawl
                 var result = await content.ReadAsStringAsync();
                 dynamic resultPage = JsonConvert.DeserializeObject(result);
 
+                // for every obect add the makelaar or increment his amount of objects
                 foreach (var o in resultPage.Objects)
                 {
                     var m = JsonConvert.DeserializeObject<Makelaar>(o.ToString());
@@ -65,7 +85,7 @@ namespace WebServiceCrawl
                 if (totalPages > page)
                 {
                     Thread.Sleep(600);
-                    await FillPageResultInDictionary(searchWords,  ++page);
+                    await FillPageResultInDictionary(objectType, searchWords,  ++page);
                 }
             }
         }

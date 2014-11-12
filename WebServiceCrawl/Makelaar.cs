@@ -10,7 +10,6 @@ namespace WebServiceCrawl
         public int MakelaarId { get; set; }
         public string MakelaarNaam { get; set; }
 
-
         #region override Equals(), overload == operator
 
         public override bool Equals(object other)
