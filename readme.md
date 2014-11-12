@@ -23,4 +23,10 @@ Schrijf voor deze opdracht een programma in de programmeertaal van je keuze en g
 * Parsing Json to objects
 * Recursive method call (next page)
 * Overwrite and overload methods and operators (==)
-* String array for search 
+* String array for search criteria
+
+## Comments
+
+* The API key is hardcoded because it is publicly available anyway
+* There is no exception handling because it just worked from the first moment on
+* The documentation or code comments are only to communicate what we could talk about
