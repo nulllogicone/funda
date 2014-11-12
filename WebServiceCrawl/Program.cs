@@ -8,7 +8,7 @@ namespace WebServiceCrawl
     {
         static void Main(string[] args)
         {
-            // configure the desired parameter
+            // configure the desired parameters
             var objectType = ObjectType.koop;
             var searchWords = new[] { "zandvoort", "tuin" };
 
@@ -23,7 +23,7 @@ namespace WebServiceCrawl
                 Console.WriteLine("{0,5} \t {1}",  m.Value, m.Key.MakelaarNaam);
             }
 
-            // wait to terminate
+            // wait before terminate
             Console.ReadLine();
         }
     }
