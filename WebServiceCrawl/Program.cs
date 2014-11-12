@@ -11,23 +11,23 @@ namespace WebServiceCrawl
 {
     class Program
     {
-     
-
         static void Main(string[] args)
         {
-            var fc = new FundaCrawler();
-            var maks = fc.RetrieveMakelaarsAsync().Result;
+            var searchWords = new[] { "zandvoort", "tuin" };
 
-            var top = (from m in maks orderby m.Value descending select m);
+            // map the search results to a makelaar dictionary
+            var fc = new FundaCrawler();
+            var makelaars = fc.RetrieveMakelaarsAsync(searchWords).Result;
+
+            // reduce the result to the top 10 by object count
+            var top = (from m in makelaars orderby m.Value descending select m).Take(10);
             foreach (var m in top)
             {
-                Console.WriteLine("{0}: {1}",m.Key,m.Value);
+                Console.WriteLine("{0}: {1}", m.Key.MakelaarNaam, m.Value);
             }
 
             // wait to terminate
             Console.ReadLine();
-
         }
-
     }
 }

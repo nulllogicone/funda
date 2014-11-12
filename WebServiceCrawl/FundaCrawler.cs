@@ -1,46 +1,73 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Net.Http;
-using System.Security.Policy;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using System.Threading;
 
 namespace WebServiceCrawl
 {
 
-    internal class FundaCrawler
-    { 
-        // webservice url pattern, replace the searchpattern and page number must be replaced
-        private const string UrlPattern = "http://partnerapi.funda.nl/feeds/Aanbod.svc/json/005e7c1d6f6c4f9bacac16760286e3cd/?type=koop&zo={0}/p{1}";
+    public class FundaCrawler
+    {
+        // webservice url pattern. The searchstring and page number must be replaced
+        private const string UrlPattern = "http://partnerapi.funda.nl/feeds/Aanbod.svc/json/005e7c1d6f6c4f9bacac16760286e3cd/?type=koop&zo={0}&pagesize=25&page={1}";
 
-        internal async Task<Dictionary<string, int>> RetrieveMakelaarsAsync(string searchpattern = "/amsterdam/tuin")
+        // internal object that holds the makelaars with the total amount of objects
+        Dictionary<Makelaar, int> makelaarDictionary;
+
+        /// <summary>
+        /// Returns a dictionary with Makelaars and the total amount of objects for the specified search
+        /// </summary>
+        /// <param name="searchpattern">A dash-delimited string</param>
+        /// <returns></returns>
+        public async Task<Dictionary<Makelaar, int>> RetrieveMakelaarsAsync(string[] searcharray)
         {
-            var returnObject = new Dictionary<string, int>();
+            var page = 1;
+            makelaarDictionary = new Dictionary<Makelaar, int>();
+            await FillPageResultInDictionary(searcharray, page);
+            return makelaarDictionary;
+        }
 
-            var url = string.Format(UrlPattern, searchpattern, 1);
-            var client = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
-            var response = await client.SendAsync(request);
-            var resstr = await response.Content.ReadAsStringAsync();
-            dynamic mkls = JsonConvert.DeserializeObject(resstr);
-
-
-            foreach (var o in mkls.Objects)
+        /// <summary>
+        /// Helper method that loads a Json page and fills the dictionary with makelaars and amount of their objects.
+        /// If there are more result pages, the method makes a recursive call to itself for the next page number.
+        /// </summary>
+        /// <param name="searchWords">An array with all words you want to search for</param>
+        /// <param name="page">The current page to retrieve.</param>
+        /// <returns>Awaitable Task (void)</returns>
+        /// <remarks>The request rate is throttled down to less than 100 / min to </remarks>
+        private async Task FillPageResultInDictionary(string[] searchWords, int page)
+        {
+            var searchString = string.Format("/{0}/", string.Join("/", searchWords));
+            var url = string.Format(UrlPattern, searchString, page);
+            using (var client = new HttpClient())
+            using (var response = await client.GetAsync(url))
+            using (var content = response.Content)
             {
-                string m = o.MakelaarNaam;
-                if (returnObject.ContainsKey(m))
+                var result = await content.ReadAsStringAsync();
+                dynamic resultPage = JsonConvert.DeserializeObject(result);
+
+                foreach (var o in resultPage.Objects)
                 {
-                    returnObject[m] ++;
+                    var m = JsonConvert.DeserializeObject<Makelaar>(o.ToString());
+                    if (makelaarDictionary.ContainsKey(m))
+                    {
+                        makelaarDictionary[m]++;
+                    }
+                    else
+                    {
+                        makelaarDictionary.Add(m, 1);
+                    }
                 }
-                else
+
+                // if there are more result pages, make a recursive call for next page
+                int totalPages = resultPage.Paging.AantalPaginas;
+                if (totalPages > page)
                 {
-                    returnObject.Add(m,1);
+                    Thread.Sleep(600);
+                    await FillPageResultInDictionary(searchWords,  ++page);
                 }
             }
-
-            return returnObject;
         }
     }
 }
