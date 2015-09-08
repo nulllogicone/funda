@@ -11,11 +11,11 @@ namespace WebServiceCrawl
     /// </summary>
     public enum ObjectType
     {
-        Koop,
-        Huur,
-        Recreatie,
-        Project,
-        Bog
+        koop,
+        huur,
+        recreatie,
+        project,
+        bog
     }
 
     /// <summary>
@@ -29,36 +29,34 @@ namespace WebServiceCrawl
         private const string UrlPattern = "http://partnerapi.funda.nl/feeds/Aanbod.svc/json/005e7c1d6f6c4f9bacac16760286e3cd/?type={0}&zo={1}&pagesize=25&page={2}";
 
         // internal object that holds the makelaars with the total amount of objects
-        Dictionary<Makelaar, int> _makelaarDictionary;
+        Dictionary<Makelaar, int> makelaarDictionary;
 
         /// <summary>
         /// Returns a dictionary with Makelaars and the total amount of objects for the specified search
         /// </summary>
-        /// <param name="objectType">A enumeration value with the object type to search for</param>
-        /// <param name="searchArray">A array with search words</param>
+        /// <param name="searchpattern">A dash-delimited string</param>
         /// <returns></returns>
-        public async Task<Dictionary<Makelaar, int>> RetrieveMakelaarsAsync(ObjectType objectType, string[] searchArray)
+        public async Task<Dictionary<Makelaar, int>> RetrieveMakelaarsAsync(ObjectType objectType, string[] searcharray)
         {
             var page = 1;
-            _makelaarDictionary = new Dictionary<Makelaar, int>();
-            await FillPageResultInDictionary(objectType, searchArray, page);
-            return _makelaarDictionary;
+            makelaarDictionary = new Dictionary<Makelaar, int>();
+            await FillPageResultInDictionary(objectType, searcharray, page);
+            return makelaarDictionary;
         }
 
         /// <summary>
         /// Helper method that loads a Json page and fills the dictionary with makelaars and amount of their objects.
         /// If there are more result pages, the method makes a recursive call to itself for the next page number.
         /// </summary>
-        /// <param name="objectType">A enumeration value with the object type to search for</param>
-        /// <param name="searchArray">A array with search words</param>
+        /// <param name="searchWords">An array with all words you want to search for</param>
         /// <param name="page">The current page to retrieve.</param>
         /// <returns>Awaitable Task (void)</returns>
         /// <remarks>The request rate is throttled down to less than 100 / min to </remarks>
-        private async Task FillPageResultInDictionary(ObjectType objectType, string[] searchArray, int page)
+        private async Task FillPageResultInDictionary(ObjectType objectType, string[] searchWords, int page)
         {
             // prepare the url
-            var searchString = $"/{string.Join("/", searchArray)}/";
-            var url = string.Format(UrlPattern, objectType, searchString, page);
+            var searchString = string.Format("/{0}/", string.Join("/", searchWords));
+            var url = string.Format(UrlPattern, objectType.ToString(), searchString, page);
 
             // execute the http request
             using (var client = new HttpClient())
@@ -72,13 +70,13 @@ namespace WebServiceCrawl
                 foreach (var o in resultPage.Objects)
                 {
                     var m = JsonConvert.DeserializeObject<Makelaar>(o.ToString());
-                    if (_makelaarDictionary.ContainsKey(m))
+                    if (makelaarDictionary.ContainsKey(m))
                     {
-                        _makelaarDictionary[m]++;
+                        makelaarDictionary[m]++;
                     }
                     else
                     {
-                        _makelaarDictionary.Add(m, 1);
+                        makelaarDictionary.Add(m, 1);
                     }
                 }
 
@@ -87,7 +85,7 @@ namespace WebServiceCrawl
                 if (totalPages > page)
                 {
                     Thread.Sleep(600);
-                    await FillPageResultInDictionary(objectType, searchArray,  ++page);
+                    await FillPageResultInDictionary(objectType, searchWords,  ++page);
                 }
             }
         }
