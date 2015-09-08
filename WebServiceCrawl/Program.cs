@@ -9,7 +9,7 @@ namespace WebServiceCrawl
         static void Main(string[] args)
         {
             // configure the desired parameters
-            var objectType = ObjectType.koop;
+            var objectType = ObjectType.Koop;
             var searchWords = new[] { "zandvoort", "tuin" };
 
             // map the search results to a makelaar dictionary
